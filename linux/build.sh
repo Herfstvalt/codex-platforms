@@ -51,8 +51,11 @@ fi
 echo "==> [4/6] Linux helper binaries (Mac → Linux swap & stubs)"
 # rg → system ripgrep
 cp "$(command -v rg)" "$OUT/resources/rg"
-# node / node_repl → system node 22 (matches Electron 41 internal Node)
+# node -> system node 22 (matches Electron 41 internal Node)
 cp "$(command -v node)" "$OUT/resources/node"
+# TODO(#14): stock Node does not provide Codex's node_repl native pipe bridge
+# (`import.meta.__codexNativePipe`), so browser-use remains blocked until this
+# is replaced with a Linux-compatible node_repl implementation.
 cp "$(command -v node)" "$OUT/resources/node_repl"
 # Mac-only helpers → no-op stub
 install -m755 "$STUBS/noop-helper" "$OUT/resources/native/bare-modifier-monitor"
