@@ -30,8 +30,14 @@ mkdir -p "$OUT/resources"
 cp "$SRC/app.asar" "$OUT/resources/app.asar"
 cp -a "$SRC/app.asar.unpacked" "$OUT/resources/app.asar.unpacked"
 
-echo "==> [3/6] Bring over plugin tree (with Linux tectonic swap)"
+echo "==> [3/6] Bring over plugin tree + native/ + helper bin slots"
 cp -a "$SRC/plugins" "$OUT/resources/plugins"
+cp -a "$SRC/native" "$OUT/resources/native"
+# Helper binary slots (we'll overwrite Mac binaries with Linux equivs in step 4).
+# Copying first preserves any non-binary sidecar files alongside them.
+for b in codex codex_chronicle node node_repl rg; do
+  cp -a "$SRC/$b" "$OUT/resources/$b"
+done
 # Replace Mac tectonic with Linux tectonic if present in apt path
 if command -v tectonic >/dev/null 2>&1; then
   cp "$(command -v tectonic)" "$OUT/resources/plugins/openai-bundled/plugins/latex-tectonic/bin/tectonic"
@@ -55,10 +61,32 @@ echo "    until we obtain Linux builds (Rust source from openai/codex-cli, or ex
 echo "    from any internal Linux build OpenAI ships)."
 
 echo "==> [5/6] Native node module rebuild against Electron 41.2.0 ABI"
-cd "$OUT/resources/app.asar.unpacked/node_modules/better-sqlite3"
-npx -y --package=@electron/rebuild@latest -- electron-rebuild -v 41.2.0 -m .
-cd "$OUT/resources/app.asar.unpacked/node_modules/node-pty"
-npx -y --package=@electron/rebuild@latest -- electron-rebuild -v 41.2.0 -m .
+# app.asar unpacks ONLY the .node files; full module trees (with package.json)
+# live inside the asar. So rebuild fresh in a scratch dir, then drop the
+# resulting .node binaries into the unpacked tree where Electron will load them.
+SCRATCH=$ROOT/native-build
+rm -rf "$SCRATCH"
+mkdir -p "$SCRATCH"
+cd "$SCRATCH"
+npm init -y >/dev/null
+npm install --no-audit --no-fund --silent better-sqlite3@12.8.0 node-pty@1.1.0
+npx -y --package=@electron/rebuild@latest -- electron-rebuild -v 41.2.0 -f -m .
+
+# Drop the rebuilt .node binaries into Codex's unpacked tree
+mkdir -p "$OUT/resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release"
+mkdir -p "$OUT/resources/app.asar.unpacked/node_modules/node-pty/build/Release"
+cp "$SCRATCH/node_modules/better-sqlite3/build/Release/better_sqlite3.node" \
+   "$OUT/resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/"
+cp "$SCRATCH/node_modules/node-pty/build/Release/pty.node" \
+   "$OUT/resources/app.asar.unpacked/node_modules/node-pty/build/Release/"
+# node-pty also ships a small spawn helper binary
+if [ -f "$SCRATCH/node_modules/node-pty/build/Release/spawn-helper" ]; then
+  cp "$SCRATCH/node_modules/node-pty/build/Release/spawn-helper" \
+     "$OUT/resources/app.asar.unpacked/node_modules/node-pty/build/Release/"
+fi
+echo "    Verifying ELF + symbols on rebuilt .node files:"
+file "$OUT/resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node"
+file "$OUT/resources/app.asar.unpacked/node_modules/node-pty/build/Release/pty.node"
 
 echo "==> [6/6] Sparkle stub patch (TODO: actually patch app.asar)"
 echo "    For now, sparkle.node is left as Mac binary; first launch will surface"
