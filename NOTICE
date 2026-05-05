@@ -1,0 +1,35 @@
+# Notices
+
+This repository contains packaging scripts, launcher files, metadata, and
+documentation for unofficial cross-platform Codex desktop packaging work.
+
+The MIT license in `LICENSE` applies to this repository's own code and
+documentation unless a file says otherwise. It does not relicense third-party
+components, upstream projects, or locally extracted payloads.
+
+## Third-Party Components
+
+- Electron is distributed under the MIT license by the Electron contributors
+  and the OpenJS Foundation.
+- `openai/codex` is distributed by OpenAI under the Apache License 2.0. Build
+  and release work should record the exact upstream commit SHA used for each
+  artifact.
+- AppImage tooling and Linux distribution packaging tools retain their own
+  licenses.
+- Native npm modules rebuilt for Electron, including `better-sqlite3` and
+  `node-pty`, retain their upstream licenses.
+
+## OpenAI Codex Desktop Payload
+
+OpenAI's Codex desktop app payload, including `app.asar`,
+`app.asar.unpacked`, bundled plugins, icons, and OpenAI-authored assets, is the
+property of OpenAI or its licensors. This repository must not check those
+payload files into source control.
+
+The build process is designed to consume a user- or maintainer-supplied
+official Codex desktop installation and preserve the payload verbatim. Any
+redistributed artifact should carry forward applicable upstream notices,
+including any `THIRD_PARTY_NOTICES` files present in the source application
+bundle or upstream projects.
+
+This project is unofficial and is not endorsed by OpenAI.

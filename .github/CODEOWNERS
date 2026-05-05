@@ -1,0 +1,15 @@
+# GitHub uses the last matching CODEOWNERS pattern for each path.
+# Keep ownership broad until platform-specific maintainers join.
+
+* @Herfstvalt
+
+/.github/ @Herfstvalt
+/docs/ @Herfstvalt
+/linux/ @Herfstvalt
+/shared/ @Herfstvalt
+/windows/ @Herfstvalt
+
+/CONTRIBUTING.md @Herfstvalt
+/LICENSE @Herfstvalt
+/NOTICE @Herfstvalt
+/README.md @Herfstvalt
