@@ -16,6 +16,9 @@ artifacts, private keys, tokens, or local build directories.
 `main` is protected. Expect one approving review, resolved conversations, and
 no force-push or direct-delete workflow for normal changes.
 
+The issue flow is `needs-triage` -> labeled and scoped -> claimed or assigned
+-> pull request.
+
 ## Review Boundaries
 
 - Changes under `linux/` should be reviewable as Linux packaging/runtime work.
@@ -48,9 +51,33 @@ Current Linux test infrastructure:
 - Linux test box: SSH host `codex-test`, Ubuntu 24.04 LTS.
 - Linux assembly path: `/root/codex-port` on `codex-test`.
 
+## Local Build Loop
+
+Run Linux build and packaging changes from a clean checkout on `codex-test`:
+
+```sh
+ssh codex-test
+cd /root/codex
+linux/build.sh
+linux/package-appimage.sh
+ls -lh /root/codex-port/dist/Codex-x86_64.AppImage
+```
+
+`linux/build.sh` assumes `/root/codex-port/mac-resources` contains the extracted
+Mac `Contents/Resources` payload and
+`/root/codex-port/electron-linux/extracted` contains the Linux Electron tree.
+Do not commit either staged payload, generated build tree, or release artifact.
+
+For documentation-only changes, do not run the remote build unless the docs
+change a command, path, or build assumption that needs proof.
+
 ## Upstream Pins
 
-Pinned upstream Codex source is maintained in `shared/upstream.env`.
+Every build artifact must state the exact upstream `openai/codex` SHA used for
+the Rust agent. Until a pin manifest is committed, record that SHA in the PR
+description and release notes. When a branch adds or updates a pin manifest,
+commit the manifest change with the build changes that depend on it.
+
 Version-bump PRs should state:
 
 - Old and new upstream `openai/codex` SHA.
@@ -58,8 +85,8 @@ Version-bump PRs should state:
 - What smoke or build evidence was collected.
 - Whether any native module, Electron, payload, or protocol behavior changed.
 
-Use `shared/bump-upstream.sh` when available to update the pin, then commit the
-resulting manifest change with the build changes that depend on it.
+Use the repository's pin helper when one exists; otherwise update the manifest
+directly and keep the old/new SHA diff visible for reviewers.
 
 ## Payload And Artifact Rules
 
@@ -80,3 +107,7 @@ Use labels to make reviewer routing explicit:
   issue.
 - Keep `needs-triage` until the issue has enough scope, labels, and acceptance
   criteria for someone else to pick up.
+- Skip issues labeled `claimed` and issues whose `Blocked by` section names an
+  incomplete issue.
+- To claim work, add the `claimed` label and leave a short issue comment stating
+  the intended scope.
