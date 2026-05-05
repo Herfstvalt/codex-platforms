@@ -1,0 +1,10 @@
+#!/bin/sh
+# Stub Linux replacement for the Mac-only helpers:
+#   - bare-modifier-monitor (kbd modifier polling)
+#   - launch-services-helper (LaunchServices integration)
+# These are spawned by main-DlFGMsC6.js. We exit 0 quickly so any wait()
+# on them resolves cleanly. Stdin is consumed silently in case the parent
+# pipes commands to us.
+exec >/dev/null 2>&1
+cat >/dev/null
+exit 0
