@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Codex
+GenericName=AI Coding Assistant
+Comment=OpenAI Codex desktop (unofficial Linux port)
+Exec=codex-electron %U
+Icon=codex
+Terminal=false
+Categories=Development;IDE;Utility;
+StartupWMClass=Codex
+MimeType=x-scheme-handler/codex;

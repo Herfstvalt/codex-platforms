@@ -1,0 +1,15 @@
+#!/bin/sh
+# AppRun — entrypoint for the Codex AppImage.
+# This script is what executes when the user double-clicks (or runs) the
+# AppImage. AppImage mounts the contents read-only and invokes this script.
+
+# Resolve the AppImage's mounted root.
+HERE="$(dirname "$(readlink -f "${0}")")"
+
+# Electron 41 needs --no-sandbox unless we ship a setuid chrome-sandbox.
+# The chrome-sandbox binary inside the bundle will be 0644 (AppImage strips
+# setuid), so the only reliable option is --no-sandbox.
+exec "$HERE/usr/bin/codex-electron" \
+    --no-sandbox \
+    "$HERE/usr/share/codex/resources/app.asar" \
+    "$@"
