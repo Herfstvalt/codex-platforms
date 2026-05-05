@@ -31,7 +31,7 @@ Codex version: v26.429.30905. Electron 41.2.0. electron-forge built.
 | `codex` | 189 MB | Codex CLI / agent runtime (Rust) | needs OpenAI's Linux build OR cargo build from source — **biggest unknown** |
 | `codex_chronicle` | 3.9 MB | Chronicle screen-memory capture helper | omit/stub on Linux; macOS-only until upstream source or cross-platform Chronicle support exists |
 | `node` | 113 MB | bundled Node.js | swap with Linux Node 22 (matches Electron 41) |
-| `node_repl` | 8.9 MB | REPL sandbox for browser-use plugin | swap with Linux node, or symlink |
+| `node_repl` | 8.9 MB | REPL sandbox for browser-use plugin, including native pipe bridge | needs Linux-compatible bridge; stock Node does not expose `import.meta.__codexNativePipe` |
 | `rg` | 3.9 MB | ripgrep | Ubuntu `apt install ripgrep` |
 
 ## `native/` (helper binaries used at runtime)
@@ -49,7 +49,7 @@ Codex version: v26.429.30905. Electron 41.2.0. electron-forge built.
 |---|---|
 | `latex-tectonic` | ships a Mac `tectonic` binary — swap for Linux tectonic |
 | `computer-use` | `.mcp.json` only, no native — should work as-is |
-| `browser-use` | `browser-client.mjs` script + native pipe/IAB backend; macOS peer-auth addon is not loaded on Linux |
+| `browser-use` | `browser-client.mjs` script + native pipe/IAB backend; macOS peer-auth addon is not loaded on Linux, but `node_repl` must provide `import.meta.__codexNativePipe` |
 
 ## Spawn references found in JS
 
@@ -73,8 +73,11 @@ The fact that some references are guarded with `_missing` error keys is encourag
 - `browser-use-peer-authorization.node` is a macOS code-signing peer
   authorization addon. No public source or npm package was found, but the
   Electron main bundle skips it on non-macOS platforms. Linux should remove the
-  copied Mach-O addon and validate browser-use through the native pipe; follow-up
-  #14 tracks the implementation; see
+  copied Mach-O addon.
+- Browser-use still needs a Linux `node_repl` native-pipe bridge. The current
+  stock-Node replacement does not expose `import.meta.__codexNativePipe`, so
+  browser-use cannot connect to the in-app-browser socket yet. Follow-up #14
+  tracks the implementation; see
   `docs/research/chronicle-and-browser-use.md`.
 
 ## Mac-only dependencies in package.json

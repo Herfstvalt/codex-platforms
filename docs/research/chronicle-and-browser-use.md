@@ -14,7 +14,11 @@ Related issues: #3, #4, and follow-up #14.
   Electron app does not need it on Linux.
 - Browser-use should remain a Linux goal. The Linux package should remove the
   copied macOS addon and validate the native pipe / in-app-browser path on
-  `ssh codex-test`. Follow-up #14 tracks that implementation and smoke test.
+  `ssh codex-test`.
+- The next blocker for Linux browser-use is `node_repl`, not peer
+  authorization. Replacing Codex's `node_repl` with stock Node removes the
+  `import.meta.__codexNativePipe` bridge required by `browser-client.mjs`.
+  Follow-up #14 tracks that implementation and smoke test.
 
 ## Evidence
 
@@ -42,6 +46,14 @@ the addon. The same code path creates the browser-use native pipe with a JS
 `net.createServer`, using Unix socket paths under `/tmp/codex-browser-use*` on
 Linux. That makes the macOS addon unnecessary for Linux browser-use work.
 
+The bundled browser client does still require a privileged native pipe bridge:
+`browser-client.mjs` calls `import.meta.__codexNativePipe.createConnection(...)`
+to reach those sockets. The macOS `node_repl` binary contains native-pipe bridge
+strings and an allowlist knob for Unix sockets. On `ssh codex-test`, the current
+Linux build swaps `node_repl` to a Linux Node executable, and a direct ESM check
+reports no `__codexNativePipe` bridge. That is the real browser-use blocker to
+port or replace on Linux.
+
 On `ssh codex-test`, the current Linux build already installs
 `codex_chronicle` as a shell stub. The current build still carries the macOS
 `browser-use-peer-authorization.node` artifact into `build/resources/native`,
@@ -57,6 +69,9 @@ new upstream source appears. For now:
 - Chronicle is intentionally disabled on Linux.
 - Do not request a Linux build of `browser-use-peer-authorization.node`; the app
   only needs that addon on macOS.
-- Browser-use should be tested on Linux through the in-app-browser native pipe.
-  If it fails, debug the pipe/backend lifecycle rather than the macOS peer-auth
-  addon.
+- Browser-use should be made to work on Linux by providing a Linux-compatible
+  `node_repl` native-pipe bridge, then testing through the in-app-browser native
+  pipe.
+- The Linux bridge should only allow Codex-owned browser-use socket paths and
+  should use same-user socket restrictions such as `$XDG_RUNTIME_DIR` or a
+  mode-0700 per-user runtime directory.
