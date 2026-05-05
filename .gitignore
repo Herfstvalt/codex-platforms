@@ -1,0 +1,33 @@
+# OS / editor
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Local build artifacts (the actual heavy lifting happens on codex-test, not here)
+build/
+dist/
+*.AppImage
+*.tar.gz
+*.zip
+*.deb
+*.rpm
+*.exe
+*.msi
+
+# Rust target dir if anyone ever builds locally
+target/
+
+# Node
+node_modules/
+
+# Logs / scratch
+*.log
+.scratch/
+
+# Mac payload (huge — never check in)
+mac-resources/
+
+# Real Codex icon — not redistributed; placeholder generated at package time
+linux/codex.png
