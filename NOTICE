@@ -13,7 +13,8 @@ components, upstream projects, or locally extracted payloads.
   and the OpenJS Foundation.
 - `openai/codex` is distributed by OpenAI under the Apache License 2.0. Build
   and release work should record the exact upstream commit SHA used for each
-  artifact.
+  artifact as that artifact's SHA pin, and carry forward the upstream `NOTICE`
+  file from that pinned checkout.
 - AppImage tooling and Linux distribution packaging tools retain their own
   licenses.
 - Native npm modules rebuilt for Electron, including `better-sqlite3` and
@@ -29,7 +30,7 @@ payload files into source control.
 The build process is designed to consume a user- or maintainer-supplied
 official Codex desktop installation and preserve the payload verbatim. Any
 redistributed artifact should carry forward applicable upstream notices,
-including any `THIRD_PARTY_NOTICES` files present in the source application
-bundle or upstream projects.
+including `/Applications/Codex.app/Contents/Resources/THIRD_PARTY_NOTICES.txt`
+from the source Mac application bundle when that payload is redistributed.
 
 This project is unofficial and is not endorsed by OpenAI.
