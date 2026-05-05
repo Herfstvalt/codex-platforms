@@ -33,6 +33,11 @@ cp -a "$SRC/app.asar.unpacked" "$OUT/resources/app.asar.unpacked"
 echo "==> [3/6] Bring over plugin tree + native/ + helper bin slots"
 cp -a "$SRC/plugins" "$OUT/resources/plugins"
 cp -a "$SRC/native" "$OUT/resources/native"
+# Decision #4: browser-use-peer-authorization.node is a macOS trusted-peer
+# authorization addon. The Electron main bundle authorizes non-macOS peers
+# without loading it, so remove the copied Mach-O artifact and validate
+# browser-use through the Linux native pipe instead.
+rm -f "$OUT/resources/native/browser-use-peer-authorization.node"
 # Helper binary slots (we'll overwrite Mac binaries with Linux equivs in step 4).
 # Copying first preserves any non-binary sidecar files alongside them.
 for b in codex codex_chronicle node node_repl rg; do
@@ -52,13 +57,15 @@ cp "$(command -v node)" "$OUT/resources/node_repl"
 # Mac-only helpers → no-op stub
 install -m755 "$STUBS/noop-helper" "$OUT/resources/native/bare-modifier-monitor"
 install -m755 "$STUBS/noop-helper" "$OUT/resources/native/launch-services-helper"
-# codex / codex_chronicle → ❌ no Linux build yet, install stub that exits with
-# a recognizable code so the JS errors are obvious in logs
+# codex: no Linux build yet, install a recognizable stub until the agent
+# runtime is built from public source or obtained from an upstream Linux payload.
 install -m755 "$STUBS/noop-helper" "$OUT/resources/codex"
+# Decision #3: codex_chronicle is macOS Chronicle screen-memory infrastructure.
+# Chronicle is optional for the Linux MVP, so keep it stubbed until upstream
+# ships a cross-platform helper or publishes the source needed to build it.
 install -m755 "$STUBS/noop-helper" "$OUT/resources/codex_chronicle"
-echo "    NOTE: codex / codex_chronicle are stubbed. Agent functionality will not work"
-echo "    until we obtain Linux builds (Rust source from openai/codex-cli, or extract"
-echo "    from any internal Linux build OpenAI ships)."
+echo "    NOTE: codex is stubbed. Agent functionality will not work until we obtain"
+echo "    a Linux build. Chronicle is also stubbed because it is macOS-only today."
 
 echo "==> [5/6] Native node module rebuild against Electron 41.2.0 ABI"
 # app.asar unpacks ONLY the .node files; full module trees (with package.json)
